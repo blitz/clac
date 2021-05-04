@@ -9,11 +9,15 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Copy)]
 pub enum CalculatorError {
     StackUnderflow,
+    DivideByZero,
 }
 
 impl Display for CalculatorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-        write!(f, "Stack Underflow")
+        match self {
+            CalculatorError::StackUnderflow => write!(f, "Stack Underflow"),
+            CalculatorError::DivideByZero => write!(f, "Divide by zero"),
+        }
     }
 }
 
@@ -42,6 +46,7 @@ pub enum Operation<T: Integer> {
     Add,
     Subtract,
     Multiply,
+    Divide,
 }
 
 impl<T: Integer + FromStr> FromStr for Operation<T> {
@@ -52,6 +57,7 @@ impl<T: Integer + FromStr> FromStr for Operation<T> {
             "+" => Ok(Operation::Add),
             "-" => Ok(Operation::Subtract),
             "*" => Ok(Operation::Multiply),
+            "/" => Ok(Operation::Divide),
             maybe_int => Ok(Operation::Value(
                 maybe_int.parse::<T>().map_err(|_| ParseError {})?,
             )),
@@ -88,6 +94,13 @@ impl<T: Integer + Clone> Calculator<T> {
             Operation::Add => self.do_2param_op(|a, b| Ok(a + b))?,
             Operation::Subtract => self.do_2param_op(|a, b| Ok(a - b))?,
             Operation::Multiply => self.do_2param_op(|a, b| Ok(a * b))?,
+            Operation::Divide => self.do_2param_op(|a, b| {
+                if b.is_zero() {
+                    Err(CalculatorError::DivideByZero)
+                } else {
+                    Ok(a / b)
+                }
+            })?,
         };
 
         Ok(())
