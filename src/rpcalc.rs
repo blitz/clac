@@ -1,22 +1,25 @@
-use num::Integer;
 use std::error::Error;
 use std::fmt::Display;
 use std::ops::FnOnce;
 use std::str::FromStr;
+
+use crate::traits::Number;
 
 /// All errors that happen during calculation are represented by this
 /// type.
 #[derive(Debug, Clone, Copy)]
 pub enum CalculatorError {
     StackUnderflow,
-    DivideByZero,
+    InvalidOperation,
 }
 
 impl Display for CalculatorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
         match self {
             CalculatorError::StackUnderflow => write!(f, "Stack Underflow"),
-            CalculatorError::DivideByZero => write!(f, "Divide by zero"),
+            CalculatorError::InvalidOperation => {
+                write!(f, "Invalid operation (overflow, divide by zero, ...)")
+            }
         }
     }
 }
@@ -36,12 +39,12 @@ impl Display for ParseError {
 impl Error for ParseError {}
 
 #[derive(Default, Debug, Clone)]
-pub struct Calculator<T: Integer + Clone> {
+pub struct Calculator<T: Number> {
     stack: Vec<T>,
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Operation<T: Integer> {
+pub enum Operation<T: Number> {
     Value(T),
     Add,
     Subtract,
@@ -49,7 +52,7 @@ pub enum Operation<T: Integer> {
     Divide,
 }
 
-impl<T: Integer + FromStr> FromStr for Operation<T> {
+impl<T: Number> FromStr for Operation<T> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> std::result::Result<Self, ParseError> {
@@ -67,7 +70,7 @@ impl<T: Integer + FromStr> FromStr for Operation<T> {
 
 pub type CalculatorResult<T> = Result<T, CalculatorError>;
 
-impl<T: Integer + Clone> Calculator<T> {
+impl<T: Number> Calculator<T> {
     fn pop(&mut self) -> CalculatorResult<T> {
         self.stack.pop().ok_or(CalculatorError::StackUnderflow)
     }
@@ -89,18 +92,14 @@ impl<T: Integer + Clone> Calculator<T> {
     }
 
     pub fn do_operation(&mut self, op: Operation<T>) -> CalculatorResult<()> {
+        let einval = CalculatorError::InvalidOperation;
+
         match op {
             Operation::Value(v) => self.push(v),
-            Operation::Add => self.do_2param_op(|a, b| Ok(a + b))?,
-            Operation::Subtract => self.do_2param_op(|a, b| Ok(a - b))?,
-            Operation::Multiply => self.do_2param_op(|a, b| Ok(a * b))?,
-            Operation::Divide => self.do_2param_op(|a, b| {
-                if b.is_zero() {
-                    Err(CalculatorError::DivideByZero)
-                } else {
-                    Ok(a / b)
-                }
-            })?,
+            Operation::Add => self.do_2param_op(|a, b| a.checked_add(b).ok_or(einval))?,
+            Operation::Subtract => self.do_2param_op(|a, b| a.checked_sub(b).ok_or(einval))?,
+            Operation::Multiply => self.do_2param_op(|a, b| a.checked_mul(b).ok_or(einval))?,
+            Operation::Divide => self.do_2param_op(|a, b| a.checked_div(b).ok_or(einval))?,
         };
 
         Ok(())
