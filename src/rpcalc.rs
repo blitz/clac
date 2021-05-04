@@ -2,6 +2,34 @@ use num::Integer;
 use std::error::Error;
 use std::fmt::Display;
 use std::ops::FnOnce;
+use std::str::FromStr;
+
+/// All errors that happen during calculation are represented by this
+/// type.
+#[derive(Debug, Clone, Copy)]
+pub enum CalculatorError {
+    StackUnderflow,
+}
+
+impl Display for CalculatorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "Stack Underflow")
+    }
+}
+
+impl Error for CalculatorError {}
+
+/// All parsing errors are represented by this type.
+#[derive(Debug, Clone, Copy)]
+pub struct ParseError {}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+        write!(f, "Failed to parse token")
+    }
+}
+
+impl Error for ParseError {}
 
 #[derive(Default, Debug, Clone)]
 pub struct Calculator<T: Integer + Clone> {
@@ -16,18 +44,20 @@ pub enum Operation<T: Integer> {
     Multiply,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum CalculatorError {
-    StackUnderflow,
-}
+impl<T: Integer + FromStr> FromStr for Operation<T> {
+    type Err = ParseError;
 
-impl Display for CalculatorError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-        write!(f, "Stack Underflow")
+    fn from_str(s: &str) -> std::result::Result<Self, ParseError> {
+        match s {
+            "+" => Ok(Operation::Add),
+            "-" => Ok(Operation::Subtract),
+            "*" => Ok(Operation::Multiply),
+            maybe_int => Ok(Operation::Value(
+                maybe_int.parse::<T>().map_err(|_| ParseError {})?,
+            )),
+        }
     }
 }
-
-impl Error for CalculatorError {}
 
 pub type CalculatorResult<T> = Result<T, CalculatorError>;
 

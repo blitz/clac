@@ -1,19 +1,26 @@
-mod parser;
 mod rpcalc;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use num::Integer;
 use std::io::{self, BufRead, Write};
 use std::iter::Iterator;
+use std::str::FromStr;
 use std::string::ToString;
 
-use crate::parser::parse;
-use crate::rpcalc::Calculator;
+use crate::rpcalc::{Calculator, Operation};
 
 fn prompt<T: Integer + ToString + Clone>(calc: &Calculator<T>) -> String {
     let tokens: Vec<String> = calc.stack().iter().map(|v| v.to_string()).collect();
 
     tokens.join(" ")
+}
+
+/// Takes a line of user input and turns it into operations that can
+/// run the calculator.
+fn parse_line<T: Integer + FromStr>(line: &str) -> Result<Vec<Operation<T>>> {
+    line.split_whitespace()
+        .map(|t| Operation::<T>::from_str(t).context("Failed to parse token"))
+        .collect()
 }
 
 fn parse_and_do<T: Integer + Clone + std::str::FromStr>(
@@ -22,7 +29,7 @@ fn parse_and_do<T: Integer + Clone + std::str::FromStr>(
 ) -> Result<Calculator<T>> {
     let mut new_calc = calc.clone();
 
-    for op in parse(&line)? {
+    for op in parse_line(&line)? {
         new_calc.do_operation(op)?
     }
 
@@ -35,7 +42,7 @@ fn main() -> Result<()> {
     let mut lines = stdin.lock().lines();
 
     loop {
-        print!("{}> ", prompt(&calc));
+        print!("{} | ", prompt(&calc));
         io::stdout().flush()?;
 
         match lines.next() {
