@@ -38,7 +38,7 @@ pub struct Calculator {
 
 /// A generic type for all kinds of calculator operation
 /// implementations.
-trait OpImplementation {
+trait OpImpl {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError>;
 }
 
@@ -46,7 +46,7 @@ trait OpImplementation {
 #[derive(Default)]
 struct SwapImpl {}
 
-impl OpImplementation for SwapImpl {
+impl OpImpl for SwapImpl {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
         let a = calc.pop_mut()?;
         let b = calc.pop_mut()?;
@@ -69,7 +69,7 @@ impl From<Radix> for SetRadixOp {
     }
 }
 
-impl OpImplementation for SetRadixOp {
+impl OpImpl for SetRadixOp {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
         calc.set_radix(self.radix);
 
@@ -88,7 +88,7 @@ impl From<Value> for PushImplementation {
     }
 }
 
-impl OpImplementation for PushImplementation {
+impl OpImpl for PushImplementation {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
         calc.push_mut(self.value);
 
@@ -99,12 +99,12 @@ impl OpImplementation for PushImplementation {
 /// Bit flip a value. This autoconverts to integer.
 ///
 /// TODO: It would be very nice to have something like
-/// TwoParamOpImplementation, but that causes the generic trait
+/// TwoParamOpImpl, but that causes the generic trait
 /// implementations to conflict.
 #[derive(Default)]
 struct BitNotImpl {}
 
-impl OpImplementation for BitNotImpl {
+impl OpImpl for BitNotImpl {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
         let a = i64::from(calc.pop_mut()?);
 
@@ -114,11 +114,11 @@ impl OpImplementation for BitNotImpl {
 }
 
 /// Any two parameter operation that produces a single output.
-trait TwoParamOpImplementation {
+trait TwoParamOpImpl {
     fn compute(&self, a: Value, b: Value) -> Result<Value, CalculatorError>;
 }
 
-impl<T: TwoParamOpImplementation> OpImplementation for T {
+impl<T: TwoParamOpImpl> OpImpl for T {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
         let b = calc.pop_mut()?;
         let a = calc.pop_mut()?;
@@ -146,7 +146,7 @@ impl FloatPromotingOp2 {
     }
 }
 
-impl TwoParamOpImplementation for FloatPromotingOp2 {
+impl TwoParamOpImpl for FloatPromotingOp2 {
     fn compute(&self, a: Value, b: Value) -> Result<Value, CalculatorError> {
         if a.is_float() || b.is_float() {
             (self.float_op)(a.into(), b.into())
@@ -170,13 +170,13 @@ impl IntPromotingOp2 {
     }
 }
 
-impl TwoParamOpImplementation for IntPromotingOp2 {
+impl TwoParamOpImpl for IntPromotingOp2 {
     fn compute(&self, a: Value, b: Value) -> Result<Value, CalculatorError> {
         (self.int_op)(i64::from(a), i64::from(b))
     }
 }
 
-impl From<Operation> for Box<dyn OpImplementation> {
+impl From<Operation> for Box<dyn OpImpl> {
     fn from(op: Operation) -> Self {
         match op {
             Operation::Add => Box::new(FloatPromotingOp2::new(
@@ -297,7 +297,7 @@ impl Calculator {
 
     /// Apply a single operation on the calculator.
     pub fn apply_mut(&mut self, op: Operation) -> Result<(), CalculatorError> {
-        Box::<dyn OpImplementation>::from(op).execute(self)
+        Box::<dyn OpImpl>::from(op).execute(self)
     }
 
     /// A side-effect free version of [apply_mut] that returns a new
