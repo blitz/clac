@@ -5,7 +5,12 @@ authors = ["Julian Stecklina <js@alien8.de>"]
 edition = "2018"
 license = "AGPL-3.0-or-later"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# Speed is not important. Save some disk space instead.
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = 'abort'
 
 [dependencies]
 anyhow = "1.0.40"
