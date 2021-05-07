@@ -74,6 +74,7 @@ impl FromStr for Operation {
             "hex" => Ok(Operation::SetRadix(Radix::Hex)),
             "dec" => Ok(Operation::SetRadix(Radix::Dec)),
             "bin" => Ok(Operation::SetRadix(Radix::Bin)),
+            "swap" => Ok(Operation::Swap),
             _ => Ok(Operation::Push(parse_value(token)?)),
         }
     }

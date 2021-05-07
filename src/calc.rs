@@ -42,6 +42,23 @@ trait OpImplementation {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError>;
 }
 
+/// Swap two values on the stack.
+#[derive(Default)]
+struct SwapImpl {}
+
+impl OpImplementation for SwapImpl {
+    fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
+        let a = calc.pop_mut()?;
+        let b = calc.pop_mut()?;
+
+        calc.push_mut(a);
+        calc.push_mut(b);
+
+        Ok(())
+    }
+}
+
+/// Set the output base of the calculator.
 struct SetRadixOp {
     radix: Radix,
 }
@@ -60,6 +77,7 @@ impl OpImplementation for SetRadixOp {
     }
 }
 
+/// Push a value onto the stack
 struct PushImplementation {
     value: Value,
 }
@@ -78,6 +96,7 @@ impl OpImplementation for PushImplementation {
     }
 }
 
+/// Any two parameter operation that produces a single output.
 trait TwoParamOpImplementation {
     fn compute(&self, a: Value, b: Value) -> Result<Value, CalculatorError>;
 }
@@ -195,6 +214,8 @@ impl From<Operation> for Box<dyn OpImplementation> {
             )),
 
             Operation::SetRadix(r) => Box::new(SetRadixOp::from(r)),
+
+            Operation::Swap => Box::new(SwapImpl::default()),
 
             Operation::Subtract => Box::new(FloatPromotingOp2::new(
                 |a, b| -> Result<Value, CalculatorError> {

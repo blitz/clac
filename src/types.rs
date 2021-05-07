@@ -81,4 +81,5 @@ pub enum Operation {
     LeftShift,
     RightShift,
     SetRadix(Radix),
+    Swap,
 }
