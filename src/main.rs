@@ -1,35 +1,25 @@
+mod calc;
 mod parser;
-mod rpcalc;
-mod traits;
 mod types;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::io::{self, BufRead, Write};
 use std::iter::Iterator;
-use std::str::FromStr;
 
-use crate::rpcalc::{Calculator, Operation};
-use crate::traits::Number;
+use crate::calc::Calculator;
+use crate::parser::parse;
 
-fn prompt<T: Number>(calc: &Calculator<T>) -> String {
+fn prompt(calc: &Calculator) -> String {
     let tokens: Vec<String> = calc.stack().iter().map(|v| v.to_string()).collect();
 
     tokens.join(" ")
 }
 
-/// Takes a line of user input and turns it into operations that can
-/// run the calculator.
-fn parse_line<T: Number>(line: &str) -> Result<Vec<Operation<T>>> {
-    line.split_whitespace()
-        .map(|t| Operation::<T>::from_str(t).context("Failed to parse token"))
-        .collect()
-}
-
-fn parse_and_do<T: Number>(calc: &Calculator<T>, line: &str) -> Result<Calculator<T>> {
+fn parse_and_do(calc: &Calculator, line: &str) -> Result<Calculator> {
     let mut new_calc = calc.clone();
 
-    for op in parse_line(&line)? {
-        new_calc.do_operation(op)?
+    for op in parse(&line)? {
+        new_calc.apply_mut(op)?
     }
 
     Ok(new_calc)
@@ -37,7 +27,7 @@ fn parse_and_do<T: Number>(calc: &Calculator<T>, line: &str) -> Result<Calculato
 
 fn main() -> Result<()> {
     let stdin = io::stdin();
-    let mut calc = Calculator::<i64>::default();
+    let mut calc = Calculator::default();
     let mut lines = stdin.lock().lines();
 
     loop {
