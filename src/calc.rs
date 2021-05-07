@@ -158,19 +158,19 @@ impl TwoParamOpImpl for TwoParamFloatPromoOpImpl {
 
 /// A two parameter operation that promotes both its arguments to
 /// integers all the time.
-struct IntPromotingOp2 {
+struct TwoParamIntPromoOpImpl {
     int_op: Box<dyn Fn(i64, i64) -> Result<Value, CalculatorError>>,
 }
 
-impl IntPromotingOp2 {
+impl TwoParamIntPromoOpImpl {
     fn new(int_op: impl Fn(i64, i64) -> Result<Value, CalculatorError> + 'static) -> Self {
-        IntPromotingOp2 {
+        TwoParamIntPromoOpImpl {
             int_op: Box::new(int_op),
         }
     }
 }
 
-impl TwoParamOpImpl for IntPromotingOp2 {
+impl TwoParamOpImpl for TwoParamIntPromoOpImpl {
     fn compute(&self, a: Value, b: Value) -> Result<Value, CalculatorError> {
         (self.int_op)(i64::from(a), i64::from(b))
     }
@@ -188,17 +188,17 @@ impl From<Operation> for Box<dyn OpImpl> {
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Float(a + b)) },
             )),
 
-            Operation::BitAnd => Box::new(IntPromotingOp2::new(
+            Operation::BitAnd => Box::new(TwoParamIntPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Integer(a & b)) },
             )),
 
             Operation::BitNot => Box::new(BitNotImpl::default()),
 
-            Operation::BitOr => Box::new(IntPromotingOp2::new(
+            Operation::BitOr => Box::new(TwoParamIntPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Integer(a | b)) },
             )),
 
-            Operation::BitXor => Box::new(IntPromotingOp2::new(
+            Operation::BitXor => Box::new(TwoParamIntPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Integer(a ^ b)) },
             )),
 
@@ -211,7 +211,7 @@ impl From<Operation> for Box<dyn OpImpl> {
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Float(a / b)) },
             )),
 
-            Operation::LeftShift => Box::new(IntPromotingOp2::new(
+            Operation::LeftShift => Box::new(TwoParamIntPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> {
                     Ok(Value::Integer(
                         a.checked_shl(
@@ -245,7 +245,7 @@ impl From<Operation> for Box<dyn OpImpl> {
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Float(a - b)) },
             )),
 
-            Operation::RightShift => Box::new(IntPromotingOp2::new(
+            Operation::RightShift => Box::new(TwoParamIntPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> {
                     Ok(Value::Integer(
                         a.checked_shr(
