@@ -31,12 +31,22 @@ fn parse_value(token: &str) -> Result<Value, ParseError> {
 
     lazy_static! {
         static ref INTEGER_RE: Regex = Regex::new("^[0-9]+$").unwrap();
+        static ref HEX_RE: Regex = Regex::new("^0x[a-fA-F0-9]+$").unwrap();
+        static ref BIN_RE: Regex = Regex::new("^0b[0-1]+$").unwrap();
         static ref FLOAT_RE: Regex = Regex::new("^[0-9]+\\.[0-9]+$").unwrap();
     }
 
     if INTEGER_RE.is_match(token) {
         Ok(Value::Integer(
             i64::from_str(token).map_err(|_| parse_error())?,
+        ))
+    } else if HEX_RE.is_match(token) {
+        Ok(Value::Integer(
+            i64::from_str_radix(&token[2..], 16).map_err(|_| parse_error())?,
+        ))
+    } else if BIN_RE.is_match(token) {
+        Ok(Value::Integer(
+            i64::from_str_radix(&token[2..], 2).map_err(|_| parse_error())?,
         ))
     } else if FLOAT_RE.is_match(token) {
         Ok(Value::Float(
@@ -83,19 +93,32 @@ mod tests {
     fn test_single() {
         assert_eq!(Operation::from_str("+"), Ok(Operation::Add));
         assert_eq!(Operation::from_str("<<"), Ok(Operation::LeftShift));
+
         assert_eq!(
             Operation::from_str("16"),
             Ok(Operation::Push(Value::Integer(16)))
         );
+
         assert_eq!(
             Operation::from_str("16.0"),
             Ok(Operation::Push(Value::Float(16.0)))
         );
+
         assert_eq!(
             Operation::from_str("13x213!"),
             Err(ParseError {
                 offending_token: "13x213!".to_string()
             })
+        );
+
+        assert_eq!(
+            Operation::from_str("0xfff"),
+            Ok(Operation::Push(Value::Integer(4095)))
+        );
+
+        assert_eq!(
+            Operation::from_str("0b1000"),
+            Ok(Operation::Push(Value::Integer(8)))
         );
     }
 
