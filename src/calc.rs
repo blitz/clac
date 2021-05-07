@@ -59,17 +59,17 @@ impl OpImpl for SwapImpl {
 }
 
 /// Set the output base of the calculator.
-struct SetRadixOp {
+struct SetRadixImpl {
     radix: Radix,
 }
 
-impl From<Radix> for SetRadixOp {
+impl From<Radix> for SetRadixImpl {
     fn from(radix: Radix) -> Self {
-        SetRadixOp { radix }
+        SetRadixImpl { radix }
     }
 }
 
-impl OpImpl for SetRadixOp {
+impl OpImpl for SetRadixImpl {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
         calc.set_radix(self.radix);
 
@@ -232,7 +232,7 @@ impl From<Operation> for Box<dyn OpImpl> {
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Float(a * b)) },
             )),
 
-            Operation::SetRadix(r) => Box::new(SetRadixOp::from(r)),
+            Operation::SetRadix(r) => Box::new(SetRadixImpl::from(r)),
 
             Operation::Swap => Box::new(SwapImpl::default()),
 
