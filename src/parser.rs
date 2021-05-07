@@ -30,7 +30,7 @@ fn parse_value(token: &str) -> Result<Value, ParseError> {
     };
 
     lazy_static! {
-        static ref INTEGER_RE: Regex = Regex::new("^[0-9]+$").unwrap();
+        static ref INTEGER_RE: Regex = Regex::new("^([+-]?)[0-9]+$").unwrap();
         static ref HEX_RE: Regex = Regex::new("^0x[a-fA-F0-9]+$").unwrap();
         static ref BIN_RE: Regex = Regex::new("^0b[0-1]+$").unwrap();
         static ref FLOAT_RE: Regex = Regex::new("^[0-9]+\\.[0-9]+$").unwrap();
@@ -101,6 +101,16 @@ mod tests {
         assert_eq!(
             Operation::from_str("16"),
             Ok(Operation::Push(Value::Integer(16)))
+        );
+
+        assert_eq!(
+            Operation::from_str("+16"),
+            Ok(Operation::Push(Value::Integer(16)))
+        );
+
+        assert_eq!(
+            Operation::from_str("-16"),
+            Ok(Operation::Push(Value::Integer(-16)))
         );
 
         assert_eq!(
