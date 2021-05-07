@@ -69,6 +69,7 @@ impl FromStr for Operation {
             "&" => Ok(Operation::BitAnd),
             "|" => Ok(Operation::BitOr),
             "^" => Ok(Operation::BitXor),
+            "~" => Ok(Operation::BitNot),
             "<<" => Ok(Operation::LeftShift),
             ">>" => Ok(Operation::RightShift),
             "hex" => Ok(Operation::SetRadix(Radix::Hex)),

@@ -96,6 +96,23 @@ impl OpImplementation for PushImplementation {
     }
 }
 
+/// Bit flip a value. This autoconverts to integer.
+///
+/// TODO: It would be very nice to have something like
+/// TwoParamOpImplementation, but that causes the generic trait
+/// implementations to conflict.
+#[derive(Default)]
+struct BitNotImpl {}
+
+impl OpImplementation for BitNotImpl {
+    fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
+        let a = i64::from(calc.pop_mut()?);
+
+        calc.push_mut(Value::Integer(!a));
+        Ok(())
+    }
+}
+
 /// Any two parameter operation that produces a single output.
 trait TwoParamOpImplementation {
     fn compute(&self, a: Value, b: Value) -> Result<Value, CalculatorError>;
@@ -174,6 +191,8 @@ impl From<Operation> for Box<dyn OpImplementation> {
             Operation::BitAnd => Box::new(IntPromotingOp2::new(
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Integer(a & b)) },
             )),
+
+            Operation::BitNot => Box::new(BitNotImpl::default()),
 
             Operation::BitOr => Box::new(IntPromotingOp2::new(
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Integer(a | b)) },

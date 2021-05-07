@@ -76,6 +76,7 @@ pub enum Operation {
     Multiply,
     Divide,
     BitAnd,
+    BitNot,
     BitOr,
     BitXor,
     LeftShift,
