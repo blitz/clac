@@ -78,17 +78,17 @@ impl OpImpl for SetRadixImpl {
 }
 
 /// Push a value onto the stack
-struct PushImplementation {
+struct PushImpl {
     value: Value,
 }
 
-impl From<Value> for PushImplementation {
+impl From<Value> for PushImpl {
     fn from(value: Value) -> Self {
-        PushImplementation { value }
+        PushImpl { value }
     }
 }
 
-impl OpImpl for PushImplementation {
+impl OpImpl for PushImpl {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
         calc.push_mut(self.value);
 
@@ -257,7 +257,7 @@ impl From<Operation> for Box<dyn OpImpl> {
                 },
             )),
 
-            Operation::Push(v) => Box::new(PushImplementation::from(v)),
+            Operation::Push(v) => Box::new(PushImpl::from(v)),
         }
     }
 }
