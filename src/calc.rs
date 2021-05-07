@@ -129,24 +129,24 @@ impl<T: TwoParamOpImpl> OpImpl for T {
 
 /// A two parameter operation that promotes both its arguments to
 /// float, if any one of it is.
-struct FloatPromotingOp2 {
+struct TwoParamFloatPromoOpImpl {
     int_op: Box<dyn Fn(i64, i64) -> Result<Value, CalculatorError>>,
     float_op: Box<dyn Fn(f64, f64) -> Result<Value, CalculatorError>>,
 }
 
-impl FloatPromotingOp2 {
+impl TwoParamFloatPromoOpImpl {
     fn new(
         int_op: impl Fn(i64, i64) -> Result<Value, CalculatorError> + 'static,
         float_op: impl Fn(f64, f64) -> Result<Value, CalculatorError> + 'static,
     ) -> Self {
-        FloatPromotingOp2 {
+        TwoParamFloatPromoOpImpl {
             int_op: Box::new(int_op),
             float_op: Box::new(float_op),
         }
     }
 }
 
-impl TwoParamOpImpl for FloatPromotingOp2 {
+impl TwoParamOpImpl for TwoParamFloatPromoOpImpl {
     fn compute(&self, a: Value, b: Value) -> Result<Value, CalculatorError> {
         if a.is_float() || b.is_float() {
             (self.float_op)(a.into(), b.into())
@@ -179,7 +179,7 @@ impl TwoParamOpImpl for IntPromotingOp2 {
 impl From<Operation> for Box<dyn OpImpl> {
     fn from(op: Operation) -> Self {
         match op {
-            Operation::Add => Box::new(FloatPromotingOp2::new(
+            Operation::Add => Box::new(TwoParamFloatPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> {
                     Ok(Value::Integer(
                         a.checked_add(b).ok_or(CalculatorError::InvalidOperation)?,
@@ -202,7 +202,7 @@ impl From<Operation> for Box<dyn OpImpl> {
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Integer(a ^ b)) },
             )),
 
-            Operation::Divide => Box::new(FloatPromotingOp2::new(
+            Operation::Divide => Box::new(TwoParamFloatPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> {
                     Ok(Value::Integer(
                         a.checked_div(b).ok_or(CalculatorError::InvalidOperation)?,
@@ -223,7 +223,7 @@ impl From<Operation> for Box<dyn OpImpl> {
                 },
             )),
 
-            Operation::Multiply => Box::new(FloatPromotingOp2::new(
+            Operation::Multiply => Box::new(TwoParamFloatPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> {
                     Ok(Value::Integer(
                         a.checked_mul(b).ok_or(CalculatorError::InvalidOperation)?,
@@ -236,7 +236,7 @@ impl From<Operation> for Box<dyn OpImpl> {
 
             Operation::Swap => Box::new(SwapImpl::default()),
 
-            Operation::Subtract => Box::new(FloatPromotingOp2::new(
+            Operation::Subtract => Box::new(TwoParamFloatPromoOpImpl::new(
                 |a, b| -> Result<Value, CalculatorError> {
                     Ok(Value::Integer(
                         a.checked_sub(b).ok_or(CalculatorError::InvalidOperation)?,
