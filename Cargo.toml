@@ -9,3 +9,5 @@ license = "AGPL-3.0-or-later"
 
 [dependencies]
 anyhow = "1.0.40"
+regex = "1"
+lazy_static = "1.4.0"

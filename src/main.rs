@@ -1,5 +1,7 @@
+mod parser;
 mod rpcalc;
 mod traits;
+mod types;
 
 use anyhow::{Context, Result};
 use std::io::{self, BufRead, Write};
