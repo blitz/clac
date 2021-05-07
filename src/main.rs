@@ -9,12 +9,6 @@ use std::iter::Iterator;
 use crate::calc::Calculator;
 use crate::parser::parse;
 
-fn prompt(calc: &Calculator) -> String {
-    let tokens: Vec<String> = calc.stack().iter().map(|v| v.to_string()).collect();
-
-    tokens.join(" ")
-}
-
 fn parse_and_do(calc: &Calculator, line: &str) -> Result<Calculator> {
     let mut new_calc = calc.clone();
 
@@ -31,7 +25,7 @@ fn main() -> Result<()> {
     let mut lines = stdin.lock().lines();
 
     loop {
-        print!("{} | ", prompt(&calc));
+        print!("{} | ", calc);
         io::stdout().flush()?;
 
         match lines.next() {

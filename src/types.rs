@@ -60,6 +60,13 @@ impl std::fmt::Display for Value {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Radix {
+    Bin,
+    Dec,
+    Hex,
+}
+
 /// An operation that can be run on a calculator.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Operation {
@@ -73,4 +80,5 @@ pub enum Operation {
     BitXor,
     LeftShift,
     RightShift,
+    SetRadix(Radix),
 }

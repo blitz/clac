@@ -6,7 +6,7 @@
 
 use std::convert::TryInto;
 
-use crate::types::{Operation, Value};
+use crate::types::{Operation, Radix, Value};
 
 /// All errors that happen during calculation are represented by this
 /// type.
@@ -29,10 +29,11 @@ impl std::fmt::Display for CalculatorError {
 
 impl std::error::Error for CalculatorError {}
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone)]
 #[must_use]
 pub struct Calculator {
     value_stack: Vec<Value>,
+    output_radix: Radix,
 }
 
 /// A generic type for all kinds of calculator operation
@@ -41,12 +42,30 @@ trait OpImplementation {
     fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError>;
 }
 
+struct SetRadixOp {
+    radix: Radix,
+}
+
+impl From<Radix> for SetRadixOp {
+    fn from(radix: Radix) -> Self {
+        SetRadixOp { radix }
+    }
+}
+
+impl OpImplementation for SetRadixOp {
+    fn execute(&self, calc: &mut Calculator) -> Result<(), CalculatorError> {
+        calc.set_radix(self.radix);
+
+        Ok(())
+    }
+}
+
 struct PushImplementation {
     value: Value,
 }
 
-impl PushImplementation {
-    fn new(value: Value) -> Self {
+impl From<Value> for PushImplementation {
+    fn from(value: Value) -> Self {
         PushImplementation { value }
     }
 }
@@ -175,6 +194,8 @@ impl From<Operation> for Box<dyn OpImplementation> {
                 |a, b| -> Result<Value, CalculatorError> { Ok(Value::Float(a * b)) },
             )),
 
+            Operation::SetRadix(r) => Box::new(SetRadixOp::from(r)),
+
             Operation::Subtract => Box::new(FloatPromotingOp2::new(
                 |a, b| -> Result<Value, CalculatorError> {
                     Ok(Value::Integer(
@@ -196,15 +217,24 @@ impl From<Operation> for Box<dyn OpImplementation> {
                 },
             )),
 
-            Operation::Push(v) => Box::new(PushImplementation::new(v)),
+            Operation::Push(v) => Box::new(PushImplementation::from(v)),
         }
+    }
+}
+
+impl Default for Calculator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 impl Calculator {
     #[allow(dead_code)]
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            value_stack: vec![],
+            output_radix: Radix::Dec,
+        }
     }
 
     pub fn pop_mut(&mut self) -> Result<Value, CalculatorError> {
@@ -240,8 +270,32 @@ impl Calculator {
         Ok(new_calc)
     }
 
+    pub fn set_radix(&mut self, radix: Radix) {
+        self.output_radix = radix;
+    }
+
+    #[allow(dead_code)]
     pub fn stack(&self) -> &[Value] {
         &self.value_stack
+    }
+}
+
+impl std::fmt::Display for Calculator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        let tokens: Vec<String> = self
+            .value_stack
+            .iter()
+            .map(|v| match v {
+                Value::Integer(i) => match self.output_radix {
+                    Radix::Dec => format!("{}", i),
+                    Radix::Hex => format!("{:#x}", i),
+                    Radix::Bin => format!("{:#b}", i),
+                },
+                Value::Float(fl) => format!("{}", fl),
+            })
+            .collect();
+
+        write!(f, "{}", tokens.join(" "))
     }
 }
 

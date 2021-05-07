@@ -7,7 +7,7 @@ use regex::Regex;
 
 use std::str::FromStr;
 
-use crate::types::{Operation, Value};
+use crate::types::{Operation, Radix, Value};
 
 /// All parsing errors are represented by this type.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,6 +71,9 @@ impl FromStr for Operation {
             "^" => Ok(Operation::BitXor),
             "<<" => Ok(Operation::LeftShift),
             ">>" => Ok(Operation::RightShift),
+            "hex" => Ok(Operation::SetRadix(Radix::Hex)),
+            "dec" => Ok(Operation::SetRadix(Radix::Dec)),
+            "bin" => Ok(Operation::SetRadix(Radix::Bin)),
             _ => Ok(Operation::Push(parse_value(token)?)),
         }
     }
