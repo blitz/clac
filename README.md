@@ -8,7 +8,13 @@ Clac is a reverse-polish calculator _like_
 [dc](https://en.wikipedia.org/wiki/Dc_(computer_program)), but vastly
 simpler and with display of the current argument stack.
 
-## Building & Installing
+## Installing (Nix)
+
+```sh
+% nix-env -f ./nix/release.nix -iA clac
+```
+
+## Installing (Cargo)
 
 ```sh
 % cargo build
