@@ -13,6 +13,6 @@ codegen-units = 1
 panic = 'abort'
 
 [dependencies]
-anyhow = "1.0.51"
+anyhow = "1.0.52"
 regex = "1"
 lazy_static = "1.4.0"
