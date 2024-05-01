@@ -14,5 +14,5 @@ panic = 'abort'
 
 [dependencies]
 anyhow = "1.0.76"
-regex = "1"
+regex = "1.10.4"
 lazy_static = "1.4.0"
