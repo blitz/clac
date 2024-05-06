@@ -2,7 +2,7 @@
   description = "A reverse-polish command line calculator";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-21.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     naersk.url = "github:nix-community/naersk";
     utils.url = "github:numtide/flake-utils";
   };
